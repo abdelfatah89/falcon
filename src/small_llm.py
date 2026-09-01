@@ -6,34 +6,34 @@ from typing import List
 
 class FalconLLM:
     def __init__(self, model_path: str | None = None):
-        model_path = model_path or os.environ.get(
+        self.model_name = model_path or os.environ.get(
             "FALCON_MODEL_PATH",
             "tiiuae/Falcon-H1-1.5B-Instruct",
         )
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path,
-            #trust_remote_code=True,
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name,
+            trust_remote_code=True,
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
+            self.model_name,
             dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
-            #trust_remote_code=True,
+            trust_remote_code=True,
         )
-        self.generator = pipeline("text-generation", model=self.model, tokenizer=self.tokenizer)
+        self.generator = pipeline("text-generation", model=self.model, tokenizer=self._tokenizer)
         self.model.to(self.device)
         self.model.eval()
 
     def encode(self, text: str) -> List[int]:
-        tokens = self.tokenizer.encode(
+        tokens = self._tokenizer.encode(
             text,
             add_special_tokens=True
         )
         return tokens
 
     def decode(self, tokens: List[int]) -> str:
-        return self.tokenizer.decode(
+        return self._tokenizer.decode(
             tokens,
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,

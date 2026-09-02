@@ -1,2 +1,2 @@
 run:
-	uv run python -m src
+	@uv run python -m src
